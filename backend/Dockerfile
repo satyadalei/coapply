@@ -32,7 +32,10 @@ COPY --from=builder /app /app
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
 
+# Default to host's Ollama instance when running in Docker container
+ENV OLLAMA_BASE_URL=http://host.docker.internal:11434
+
 EXPOSE 8000
 
 # Default command runs the production server
-CMD ["fastapi", "run", "main.py", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["fastapi", "run", "app/main.py", "--host", "0.0.0.0", "--port", "8000"]

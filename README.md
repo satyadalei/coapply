@@ -28,3 +28,48 @@
    - sent back to FE
 
    - `Shown in FE` 
+
+# Phase 1
+Setup Ollama & Pull model in backend to inference.
+Task takes Job description & returns summary ofJD in bullet points.
+- Summary should be  
+  - Years of experience
+  - tech stacks
+
+
+# Setting up docker
+
+To spin up the entire application (frontend and backend services) using Docker Compose, use the following commands:
+
+### 1. Build and Start the Containers
+To build the images and start all services in the foreground:
+```bash
+docker compose up --build
+```
+
+To run the services in the background (detached mode):
+```bash
+docker compose up -d --build
+```
+
+### 2. View Real-time Logs
+To view logs for all running services:
+```bash
+docker compose logs -f
+```
+
+To view logs for only the backend service:
+```bash
+docker compose logs -f backend
+```
+
+To view logs for only the frontend service:
+```bash
+docker compose logs -f frontend
+```
+
+### 3. Stop and Remove Containers
+To stop the services and clean up containers/networks created by compose:
+```bash
+docker compose down
+```
