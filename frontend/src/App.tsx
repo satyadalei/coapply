@@ -1,5 +1,4 @@
-import { useState, type FormEvent } from 'react';
-import './App.css';
+import { useState, type FormEvent } from "react";
 
 interface JobSummary {
   years_of_experience: string;
@@ -7,13 +6,14 @@ interface JobSummary {
 }
 
 function App() {
-  const [jobDescription, setJobDescription] = useState('');
+  const [jobDescription, setJobDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [summary, setSummary] = useState<JobSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleAnalyze = async (e: FormEvent) => {
     e.preventDefault();
+
     if (!jobDescription.trim()) return;
 
     setIsLoading(true);
@@ -21,211 +21,189 @@ function App() {
     setSummary(null);
 
     try {
-      const response = await fetch('http://localhost:8000/api/summary', {
-        method: 'POST',
+      const response = await fetch("http://localhost:8000/api/summary", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ text: jobDescription }),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || `Server returned status ${response.status}`);
+
+        throw new Error(
+          errorData.detail || `Server returned status ${response.status}`
+        );
       }
 
       const data: JobSummary = await response.json();
       setSummary(data);
     } catch (err: any) {
-      console.error('API Error:', err);
-      setError(err.message || 'An unexpected error occurred while communicating with the backend.');
+      console.error(err);
+      setError(
+        err.message ||
+        "An unexpected error occurred while communicating with the backend."
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleReset = () => {
-    setJobDescription('');
+    setJobDescription("");
     setSummary(null);
     setError(null);
   };
 
   return (
-    <div className="container">
-      <header className="header">
-        <div className="logo-container">
-          <div className="logo-icon">C</div>
-          <h1 className="logo-text">CoApply</h1>
-        </div>
-        <p className="subtitle">
-          Optimize your job search. Paste a job description to extract experience levels and technology stacks instantly.
-        </p>
-      </header>
+    <div className="min-h-screen bg-slate-50 px-4 py-12">
+      <div className="mx-auto max-w-4xl">
+        {/* Header */}
+        <header className="mb-10 text-center">
+          <div className="mb-4 flex items-center justify-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 text-white font-semibold">
+              C
+            </div>
 
-      {!summary && !isLoading && !error && (
-        <div className="card">
-          <form className="form" onSubmit={handleAnalyze}>
-            <div className="form-group">
-              <label htmlFor="jd-input" className="label">
-                Job Description
-              </label>
-              <div className="textarea-wrapper">
+            <h1 className="text-3xl font-bold text-slate-900">
+              CoApply
+            </h1>
+          </div>
+
+          <p className="mx-auto max-w-2xl text-slate-600">
+            Optimize your job search. Paste a job description and instantly
+            extract experience requirements and technology stacks.
+          </p>
+        </header>
+
+        {/* Form */}
+        {!summary && !isLoading && !error && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <form onSubmit={handleAnalyze} className="space-y-6">
+              <div>
+                <label
+                  htmlFor="jd-input"
+                  className="mb-2 block text-sm font-medium text-slate-700"
+                >
+                  Job Description
+                </label>
+
                 <textarea
                   id="jd-input"
-                  className="textarea"
-                  placeholder="Paste the job description details here (roles, responsibilities, requirements)..."
                   value={jobDescription}
                   onChange={(e) => setJobDescription(e.target.value)}
                   disabled={isLoading}
+                  placeholder="Paste the job description details here..."
+                  className="min-h-[320px] w-full resize-none rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
                 />
               </div>
+
+              <button
+                type="submit"
+                disabled={!jobDescription.trim() || isLoading}
+                className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Analyze Job Description
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* Loading */}
+        {isLoading && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-10 shadow-sm">
+            <div className="flex flex-col items-center gap-4">
+              <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900" />
+
+              <h3 className="text-lg font-semibold text-slate-900">
+                Analyzing Job Description
+              </h3>
+
+              <p className="text-center text-sm text-slate-500">
+                This may take a few seconds depending on the model response.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
+            <h3 className="mb-3 text-lg font-semibold text-red-700">
+              Analysis Failed
+            </h3>
+
+            <p className="mb-5 text-red-600">{error}</p>
+
+            <div className="mb-6 text-sm text-red-700">
+              <p className="mb-2 font-medium">Troubleshooting Tips</p>
+
+              <ul className="list-disc space-y-1 pl-5">
+                <li>Check if FastAPI is running on port 8000.</li>
+                <li>Ensure Ollama is running.</li>
+                <li>Verify the model is installed.</li>
+              </ul>
             </div>
 
             <button
-              type="submit"
-              className="button"
-              disabled={isLoading || !jobDescription.trim()}
+              onClick={handleReset}
+              className="rounded-xl border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
             >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275Z" />
-                <path d="m5 3 1 2.5L8.5 6 6 7 5 9.5 4 7 1.5 6 4 5.5Z" />
-                <path d="m19 17 1 2.5 2.5.5-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1Z" />
-              </svg>
-              Analyze Job Description
-            </button>
-          </form>
-        </div>
-      )}
-
-      {isLoading && (
-        <div className="card loading-container">
-          <div className="spinner"></div>
-          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <span className="loading-text">Analyzing job description...</span>
-            <span className="loading-subtext">This might take a moment depending on Ollama's response time.</span>
-          </div>
-        </div>
-      )}
-
-      {error && (
-        <div className="card error-card">
-          <div className="error-title">
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-            Analysis Failed
-          </div>
-          <div className="error-message">{error}</div>
-          <div className="error-suggestions">
-            <strong>Troubleshooting tips:</strong>
-            <ul>
-              <li>Check if the FastAPI backend server is running on port 8000.</li>
-              <li>Ensure Ollama is running on your machine.</li>
-              <li>Make sure you have pulled the required model (e.g. <code>ollama pull llama3</code>).</li>
-            </ul>
-          </div>
-          <div className="action-bar">
-            <button className="button button-secondary" onClick={handleReset}>
               Try Again
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {summary && (
-        <div className="results-grid">
-          <div className="card results-card">
-            <div className="label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
-                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-              </svg>
-              Experience
-            </div>
-            <div className="experience-value">{summary.years_of_experience}</div>
-          </div>
+        {/* Results */}
+        {summary && (
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+              <div className="mb-8">
+                <p className="mb-2 text-sm font-medium text-slate-500">
+                  Experience Required
+                </p>
 
-          <div className="card results-card">
-            <div className="label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" />
-              </svg>
-              Tech Stack
+                <h2 className="text-4xl font-bold text-slate-900">
+                  {summary.years_of_experience}
+                </h2>
+              </div>
+
+              <div>
+                <p className="mb-4 text-sm font-medium text-slate-500">
+                  Technology Stack
+                </p>
+
+                <div className="flex flex-wrap gap-2">
+                  {summary.tech_stacks.length > 0 ? (
+                    summary.tech_stacks.map((tech, index) => (
+                      <span
+                        key={index}
+                        className="rounded-full bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-700"
+                      >
+                        {tech}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-sm text-slate-500">
+                      No technologies detected.
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="tech-tags">
-              {summary.tech_stacks.length > 0 ? (
-                summary.tech_stacks.map((tech, idx) => (
-                  <span key={idx} className="tag">
-                    {tech}
-                  </span>
-                ))
-              ) : (
-                <span className="loading-subtext">No tech stack extracted.</span>
-              )}
+
+            <div className="flex justify-center">
+              <button
+                onClick={handleReset}
+                className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              >
+                Analyze Another
+              </button>
             </div>
           </div>
-
-          <div className="action-bar" style={{ gridColumn: '1 / -1' }}>
-            <button className="button button-secondary" onClick={handleReset}>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-                <path d="M21 3v5h-5" />
-                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-                <path d="M3 21v-5h5" />
-              </svg>
-              Analyze Another
-            </button>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
